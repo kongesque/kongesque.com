@@ -19,5 +19,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: route === "" ? 1 : 0.8,
     }))
 
-    return [...routes, ...postUrls]
+    // Sub-websites / related properties
+    const subWebsites = [
+        {
+            url: "https://flow.kongesque.com",
+            lastModified: new Date().toISOString().split("T")[0],
+            changeFrequency: "monthly" as const,
+            priority: 0.7,
+        },
+    ]
+
+    return [...routes, ...postUrls, ...subWebsites]
 }

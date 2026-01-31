@@ -50,7 +50,8 @@ export default function HomePage() {
               sameAs: [
                 "https://github.com/Kongesque",
                 "https://twitter.com/kongesque",
-                "https://www.youtube.com/@Kongesque"
+                "https://www.youtube.com/@Kongesque",
+                "https://www.reddit.com/user/kongesque/",
               ],
               jobTitle: "Developer, Cardist, Maker"
             }

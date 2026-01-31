@@ -7,7 +7,7 @@ const projects = [
     description:
       "A self-hosted intelligence layer that transforms video streams into queryable data. Built with YOLO11 to run 100% offline—delivering privacy-first spatial insights for the private edge.",
     role: "creator",
-    period: "dec 2025",
+    period: "dec 2025 - Present",
     technologies: [
       "next.js 15",
       "fastapi",
@@ -22,7 +22,7 @@ const projects = [
   {
     title: "lemon & herbs",
     description:
-      "A bilingual brand showcase for a nursery in Hua Hin. Features a minimalist, nature-centric UI with seamless localization (TH/EN) to highlight artisanal lemon trees and herbs.",
+      "A bilingual brand showcase for a nursery in Hua Hin, Thailand. Features a minimalist, nature-centric UI with seamless localization (TH/EN) to highlight artisanal lemon trees and herbs.",
     role: "creator",
     period: "nov 2025",
     technologies: [
@@ -35,7 +35,7 @@ const projects = [
   {
     title: "flow free solver",
     description:
-      "A web-based solver for the Flow Free puzzle game. Powered by C++ Heuristic BFS, SAT (Z3) & A* search.",
+      "A web-based solver for the Flow Free puzzle game. Powered by Heuristic BFS, SAT (Z3) & A* search.",
     role: "creator",
     period: "nov 2024",
     technologies: [
