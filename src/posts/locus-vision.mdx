@@ -1,12 +1,12 @@
 ---
 title: "Locus Vision: How I Built a Real-Time Edge AI Video Analytics Engine on a Raspberry Pi"
-description: "I wanted to build something that could count people, track vehicles, and map spatial heatmaps completely offline — no cloud, no ongoing cost, no video leaving the building."
+description: "I wanted to build something that could count people, track vehicles, and map spatial heatmaps completely offline, with no cloud, no ongoing cost, and no video leaving the building."
 date: "2026-04-07"
 ---
 
 The default architecture for video analytics is always the same: capture the RTSP stream, ship it to a cloud server with a high-end GPU, run inference, send the data back. It works. But it means your live camera feed is leaving the building, and the latency, bandwidth cost, and privacy tradeoffs follow from that automatically.
 
-I wanted to build a privacy-preserving alternative. Something that could do people counting, vehicle detection, and spatial heatmap generation completely on-premise — no cloud dependency, no video in transit, no ongoing infrastructure cost. And I wanted it to run on a Raspberry Pi 5, which costs $80.
+I wanted to build a privacy-preserving alternative. Something that could do people counting, vehicle detection, and spatial heatmap generation completely on-premise without cloud dependency, video in transit, or ongoing infrastructure costs. And I wanted it to run on a Raspberry Pi 5, which costs $80.
 
 That project became **[Locus Vision](https://github.com/kongesque/locus-vision)**. This is what I built, what broke along the way, and the decisions that shaped the final design.
 
@@ -24,11 +24,11 @@ If you're deploying computer vision at the edge, the framework you train with an
 
 After switching to ONNX, I kept chasing FPS and eventually realized I was looking at the wrong constraint. On a Raspberry Pi, the limiting factor isn't the CPU clock speed. It's memory bandwidth. Moving FP32 (32-bit floating point) weights from RAM to CPU registers every single frame simply takes too long, regardless of how fast the cores are.
 
-The fix was static INT8 quantization using QDQ (Quantize and DeQuantize) nodes. You map the FP32 weights into 8-bit integer space and dramatically cut the memory pressure. But it's not a clean tradeoff. INT8 compression gets you around 70% size reduction, but accuracy degrades unevenly across classes. Some object types — people, cars — hold up well. Others don't. You won't know which until you benchmark against your actual deployment conditions.
+The fix was static INT8 quantization using QDQ (Quantize and DeQuantize) nodes. You map the FP32 weights into 8-bit integer space and dramatically cut the memory pressure. But it's not a clean tradeoff. INT8 compression gets you around 70% size reduction, but accuracy degrades unevenly across classes. Some object types, like people and cars, hold up well. Others don't. You won't know which until you benchmark against your actual deployment conditions.
 
 A YOLO11n model dropped from over 10MB to 3MB. The Pi 5 stabilized at **~14 FPS** (69ms median latency) per model.
 
-14 FPS sounds low. But paired with **ByteTrack**, a multi-object tracker that maintains IDs across brief occlusions, it's more than enough for accurate footfall analytics: people counting across a line, vehicle detection in a parking zone, dwell time per area. Most occupancy detection use cases don't need 60 FPS. They need consistent, accurate tracking — and 14 FPS delivers that.
+14 FPS sounds low. But paired with **ByteTrack**, a multi-object tracker that maintains IDs across brief occlusions, it's more than enough for accurate footfall analytics: people counting across a line, vehicle detection in a parking zone, dwell time per area. Most occupancy detection use cases don't need 60 FPS. They need consistent, accurate tracking, and 14 FPS delivers that.
 
 This also forced a discipline that paid off later. Every layer of the pipeline had to stay lean, because there was no headroom for waste.
 
@@ -44,7 +44,7 @@ The solution was separating the workloads:
 - **SQLite** for operational state: camera configs, user auth, stream settings
 - **DuckDB** for all telemetry and tracking events
 
-DuckDB is a columnar analytical database. Spatial aggregations that took seconds in SQLite — things like "hourly average foot traffic grouped by zone for the last 7 days" — now run in under 10ms on the Pi. The database choice matters more than most people expect when you're doing edge AI analytics on constrained hardware. SQLite is the right tool for transactional writes. It is the wrong tool for aggregating millions of coordinate rows into heatmaps.
+DuckDB is a columnar analytical database. Spatial aggregations that took seconds in SQLite, such as calculating the hourly average foot traffic grouped by zone for the last 7 days, now run in under 10ms on the Pi. The database choice matters more than most people expect when you're doing edge AI analytics on constrained hardware. SQLite is the right tool for transactional writes. It is the wrong tool for aggregating millions of coordinate rows into heatmaps.
 
 ## Adding an NPU: From 14 FPS to 355 FPS
 
@@ -52,12 +52,12 @@ Building on raw CPU forced good habits. But hardware is moving fast.
 
 Raspberry Pi's AI HAT+ adds a PCIe-attached Hailo-8L NPU capable of 13 TOPS. Because I'd abstracted the ML pipeline around execution providers from the start, integration was straightforward. A model discovery engine detects the host hardware, and when it sees the Hailo silicon, it hands inference off to the HailoRT driver instead.
 
-The same device that was doing 14 FPS on CPU jumped to **355 FPS** on the NPU, dropping latency from 69ms to 7ms. That's enough headroom for dense multi-camera setups — several streams running parallel object detection on a single board. I genuinely didn't expect that margin. 14 FPS was already sufficient for the use case; the NPU turned out to be headroom, not a fix for something broken.
+The same device that was doing 14 FPS on CPU jumped to **355 FPS** on the NPU, dropping latency from 69ms to 7ms. That's enough headroom for dense multi-camera setups, such as several streams running parallel object detection on a single board. I genuinely didn't expect that margin. 14 FPS was already sufficient for the use case; the NPU turned out to be headroom, not a fix for something broken.
 
 The practical takeaway: if the inference engine is properly abstracted, swapping the execution backend is a config change, not a rewrite.
 
 ## What I Ended Up With
 
-The result is **Locus Vision**: an $80 single-board computer running real-time multi-object tracking, spatial heatmaps, footfall analytics, and vehicle detection — all on-premise, all offline. No cloud instance, no video leaving the network, no monthly bill.
+The result is **Locus Vision**: an $80 single-board computer running real-time multi-object tracking, spatial heatmaps, footfall analytics, and vehicle detection completely on-premise and offline. No cloud instance, no video leaving the network, no monthly bill.
 
 The full platform is open-sourced. Code is on [GitHub](https://github.com/kongesque/locus-vision), and there's a Docker setup if you want to run it without touching the Python environment.
