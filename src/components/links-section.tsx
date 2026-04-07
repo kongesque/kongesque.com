@@ -1,6 +1,5 @@
 
 import Link from "next/link"
-import { ArrowUpRight } from "lucide-react"
 
 const links = [
     {
@@ -10,10 +9,6 @@ const links = [
     {
         name: "github",
         href: "https://github.com/Kongesque",
-    },
-    {
-        name: "x.com",
-        href: "https://x.com/kongesque",
     },
 ]
 

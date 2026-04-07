@@ -49,7 +49,6 @@ export default function HomePage() {
               url: "https://www.kongesque.com",
               sameAs: [
                 "https://github.com/Kongesque",
-                "https://twitter.com/kongesque",
                 "https://www.youtube.com/@Kongesque",
                 "https://www.reddit.com/user/kongesque/",
               ],
