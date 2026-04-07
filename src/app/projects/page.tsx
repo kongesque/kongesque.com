@@ -3,9 +3,9 @@ import { Metadata } from "next"
 
 const projects = [
   {
-    title: "locus",
+    title: "locus-vision",
     description:
-      "A self-hosted intelligence layer that transforms video streams into queryable data. Built with YOLO11 to run 100% offline—delivering privacy-first spatial insights for the private edge.",
+      "An open-source vision analytics engine powered by YOLO11, optimized for edge devices. Features real-time object detection, tracking, line crossing, and spatial zone counting. 100% offline and fully self-hosted.",
     role: "creator",
     period: "dec 2025 - Present",
     technologies: [
@@ -17,7 +17,7 @@ const projects = [
       "docker",
       "tailwind",
     ],
-    href: "https://github.com/Kongesque/locus",
+    href: "https://github.com/Kongesque/locus-vision",
   },
   {
     title: "lemon & herbs",

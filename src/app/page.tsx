@@ -6,12 +6,12 @@ import { Footer } from "@/components/footer"
 
 const projectItems = [
   {
-    title: "locus",
+    title: "locus-vision",
     role: "creator",
-    period: "dec 2025",
+    period: "dec 2025 - Present",
     description:
-      "A self-hosted intelligence layer that transforms video streams into queryable data. Built with YOLO11 to run 100% offline—delivering privacy-first spatial insights for the private edge.",
-    href: "https://github.com/Kongesque/locus",
+      "An open-source vision analytics engine powered by YOLO11, optimized for edge devices. Features real-time object detection, tracking, line crossing, and spatial zone counting. 100% offline and fully self-hosted.",
+    href: "https://github.com/Kongesque/locus-vision",
   },
   {
     title: "lemon & herbs",
