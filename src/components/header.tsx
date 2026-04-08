@@ -35,18 +35,18 @@ export function Header() {
 
                 <h1 className="text-2xl sm:text-3xl font-bold mb-4 animate-fade-in text-primary">
                     <span className="inline-block">
-                        Kongesque
+                        Kong
                     </span>
                 </h1>
 
                 <p className="leading-relaxed animate-fade-in-up text-primary mb-2">
-                    is a software engineer, creative thinker, and lifelong learner.
+                    specializes in building intelligent, offline-first systems at the edge.
                 </p>
 
                 <div className="flex gap-1 sm:gap-4 text-secondary text-sm flex-col sm:flex-row">
                     <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Taipei, Taiwan
+                        Hualien, Taiwan
                     </div>
                 </div>
             </div>
