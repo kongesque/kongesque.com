@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { MDX } from "./mdx";
-import { getPostBySlug } from "@/lib/blog";
+import { getPostBySlug, getPosts } from "@/lib/blog";
 import CopyLinkButton from '@/components/share-button';
 import { Footer } from '@/components/footer';
 import Image from "next/image";
@@ -11,6 +11,11 @@ type PageProps = {
 };
 
 const baseUrl = "https://www.kongesque.com";
+
+export async function generateStaticParams() {
+  const posts = getPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const slug = (await params).slug;
