@@ -106,15 +106,36 @@ export default async function Post({ params }: PageProps) {
     author: {
       "@type": "Person",
       name: "Kongesque",
+      description: "Kongesque is a software engineer who specializes in building intelligent, offline-first edge AI systems. Builder of open-source computer vision and privacy-first video analytics tools.",
       url: baseUrl,
+      knowsAbout: [
+        "Computer Vision",
+        "Edge AI",
+        "Object Detection",
+        "Object Tracking",
+        "YOLO11",
+        "YOLOv8",
+        "ByteTrack",
+        "OpenCV",
+        "Real-Time Video Analytics",
+        "Self-Hosted Infrastructure",
+        "Privacy-First Software",
+        "Full-Stack Web Development",
+        "Next.js",
+        "FastAPI",
+        "Docker",
+        "TypeScript",
+        "Open Source Development",
+        "Retail Analytics"
+      ],
+      email: "mailto:kongesque@gmail.com",
       sameAs: [
         "https://github.com/Kongesque",
-        "https://twitter.com/kongesque",
-        "https://x.com/kongesque",
-        "https://www.youtube.com/@Kongesque",
+        "https://gitee.com/kongesque",
+        "https://huggingface.co/kongesque",
         "https://www.reddit.com/user/kongesque"
       ],
-      jobTitle: "Developer, Cardist, Maker"
+      jobTitle: "Software Engineer"
     },
     publisher: {
       "@type": "Person",
