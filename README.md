@@ -1,16 +1,18 @@
-# keq
+# kongesque.com
 
-Personal website and blog.
+[kongesque.com](https://www.kongesque.com) - built in the dark
 
-## Development
+---
+
+## run
 
 ```bash
 npm install
-npm run dev
+npm run dev     
+npm run lint    
+npm run build   
 ```
 
-## Build
+---
 
-```bash
-npm run build
-```
+© kongesque

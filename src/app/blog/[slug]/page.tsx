@@ -171,7 +171,7 @@ export default async function Post({ params }: PageProps) {
         width={1200}
         height={630}
         priority
-        className="w-full h-64 object-cover rounded-lg"
+        className="w-full h-64 md:h-96 object-cover rounded-lg"
       />
 
       <div className="flex flex-row my-6 gap-4 items-start sm:items-center justify-between px-2">
