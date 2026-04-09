@@ -49,7 +49,10 @@ function CustomLink({
 }
 
 function CustomImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  return <img alt={props.alt} className="rounded-lg" {...props} />
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img alt={props.alt} className="rounded-lg" loading="lazy" {...props} />
+  )
 }
 
 async function Pre({

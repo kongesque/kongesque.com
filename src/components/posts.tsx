@@ -1,5 +1,3 @@
-"use client"
-
 import type { MDXFileData } from "@/lib/blog"
 import { PostItem } from "./post-item"
 
