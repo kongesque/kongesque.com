@@ -2,6 +2,9 @@ import { MDXRemote } from "next-mdx-remote/rsc"
 import Link from "next/link"
 import { Children, createElement, isValidElement } from "react"
 import { codeToHtml } from "shiki"
+import remarkMath from "remark-math"
+import rehypeKatex from "rehype-katex"
+import Image from "next/image"
 
 function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
   let headers = data.headers.map((header, index) => (
@@ -53,6 +56,15 @@ function CustomImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
     // eslint-disable-next-line @next/next/no-img-element
     <img alt={props.alt} className="rounded-lg" loading="lazy" {...props} />
   )
+}
+
+function NextImage(props: any) {
+  const { src, alt, width, height, unoptimized, ...rest } = props;
+  const numWidth = parseInt(width, 10) || 800;
+  const numHeight = parseInt(height, 10) || 450;
+  const isUnoptimized = unoptimized === true || unoptimized === "true";
+  
+  return <Image src={src} alt={alt || ""} width={numWidth} height={numHeight} unoptimized={isUnoptimized} {...rest} />
 }
 
 async function Pre({
@@ -132,12 +144,19 @@ const components = {
   h6: createHeading(6),
   pre: Pre,
   Table,
+  Image: NextImage,
 }
 
 export function MDX(props: any) {
   return (
     <MDXRemote
       {...props}
+      options={{
+        mdxOptions: {
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex],
+        },
+      }}
       components={{ ...components, ...(props.components ?? {}) }}
     />
   )

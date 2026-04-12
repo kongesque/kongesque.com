@@ -1,0 +1,89 @@
+---
+title: "Flow Free Is NP-Complete. I Built Three Solvers for It."
+description: "Flow Free looks like a children's puzzle. Formally, it's NP-complete. I built three solvers for it and ran them all client-side in the browser."
+date: "2025-01-15"
+---
+
+Flow Free is a mobile puzzle game where you connect colored dots on a grid. The rules are simple: connect every pair, don't let paths cross, and fill every cell. A 5×5 grid takes a second. A 15×15 grid is a different problem entirely.
+
+I kept getting stuck on it. So I built a solver. It started as an algorithms class assignment, but also I just genuinely wanted one for when you've been staring at a level for an hour and need a nudge. I know the real fun is solving it yourself. One thing led to another and it turned into three different solvers, all running in your browser at **[flow.kongesque.com](https://flow.kongesque.com)**.
+
+<div className="my-6">
+  <Image src="/14x14_demo.gif" alt="14x14 Flow Free solver demo" width="800" height="450" unoptimized="true" className="w-full rounded-lg" />
+</div>
+
+## Why Flow Free Is Hard
+
+The "fill every cell" constraint is what makes it genuinely difficult. Without it, connecting colored dots is a standard pathfinding problem. Run BFS or Dijkstra for each color, done. With it, you're searching for a path set that forms a Hamiltonian cover of the grid: every cell occupied exactly once, no gaps, no overlaps.
+
+Hamiltonian path problems are NP-complete. Not just a label. It means no known algorithm solves every instance in polynomial time, and most people in CS believe none exists. As the grid grows from 5×5 to 15×15, the number of candidate path combinations grows exponentially. A brute-force search that finishes instantly on a small puzzle can run for hours on a larger one with the same basic structure.
+
+NP-complete doesn't mean impossible in practice. It means worst-case instances are hard. Real puzzles tend to have enough structure that good pruning finds the answer quickly. But change the layout slightly and a solver that seemed fast can suddenly stall.
+
+## Approach 1: SAT Solver
+
+Flow Free maps cleanly onto a Constraint Satisfaction Problem (CSP): assign a color to every cell such that all three connection rules hold simultaneously. The idea is to encode those constraints as a SAT instance and hand it to a theorem prover. I used **Z3**, Microsoft Research's SMT solver, compiled to WebAssembly so it runs without a backend.
+
+The encoding has three rules. Let $Cell_{ij}$ be the color at row $i$, column $j$, and $N_{ij}$ be the number of same-color neighbors:
+
+**1. Every cell must have exactly one color.**
+
+$$Cell_{ij} = \begin{cases} Cell_{ij} & \text{if } Cell_{ij} > 0 \\ Cell_{ij} > 0 & \text{if } Cell_{ij} = 0 \end{cases}$$
+
+Pre-filled endpoint cells keep their color. Empty cells must be assigned one.
+
+**2. Terminal cells connect to exactly one same color neighbor.**
+
+$$N_{ij} = 1, \text{ if } Cell_{ij} > 0$$
+
+Each endpoint has exactly one neighbor of the same color. Two would mean the path branches.
+
+**3. Path cells connect to exactly two same color neighbors.**
+
+$$N_{ij} = 2 \text{ or } N_{ij} = 0, \text{ if } Cell_{ij} = 0$$
+
+Any non-endpoint cell is either mid path (two neighbors) or unused. But since rule 1 forces every cell to have a color, $N_{ij} = 0$ can't actually appear in a valid solution.
+
+$N_{ij}$ counts neighbors within Manhattan distance 1. You declare boolean variables for each (cell, color) pair, encode these as logical clauses, and Z3 either returns a satisfying assignment or proves none exists.
+
+But Z3 is not light. The WASM bundle is several megabytes, real load cost on first use. And it doesn't exploit the spatial structure of the grid at all. It treats the puzzle like any arbitrary logical formula. On larger grids, that slowness is obvious.
+
+## Approach 2: A* with Lookahead Pruning
+
+A backtracking search. For each color in sequence, BFS explores possible paths from start to end. A* guides it using Manhattan distance as the heuristic, a lower bound on how many cells a valid path needs to cross.
+
+The key part is the lookahead. Before committing to a path for one color, the solver checks whether every remaining color can still reach its endpoint given the cells already consumed. If any color is cut off, the path is discarded and the search backtracks.
+
+Without lookahead, the solver wastes time on boards that are already unsolvable. With it, pruning is aggressive enough to handle small grids fast.
+
+At 10×10 and above, the search tree just explodes. You could improve it: smarter color ordering, better dead-region detection, a tighter heuristic than Manhattan distance. But you're still fighting exponential growth. At some point the algorithm is the wrong tool.
+
+## Approach 3: A C Solver Compiled to WebAssembly
+
+In 2016, Matt Zucker wrote [a blog post](https://mzucker.github.io/2016/08/28/flow-solver.html) about solving Flow Free in C. The solver is fast enough that he later had to write a follow up titled "Eating SAT-Flavored Crow" after the SAT approach turned out more competitive than he expected. Worth reading both. His C code is clean and the pruning strategies he came up with are genuinely clever. I didn't write this from scratch. I took his flow solver, compiled it to WASM via Emscripten, and wired it into the browser as a web worker. Small binary, loads fast, runs close to native speed.
+
+**Active color selection.** At each step, only the most constrained color gets extended, the one with the fewest valid moves. This is the minimum remaining values heuristic. Branching factor drops significantly because you're almost always extending the forced choice.
+
+**Dead-end detection.** If a color gets cut off from its endpoint, the state is immediately discarded. Simple connectivity check, but doing it without rebuilding the whole graph on every move is what makes it fast.
+
+**Stranding detection.** If the cells remaining in some connected region are too few to complete the paths through it, the state is invalid. Catches dead boards earlier than basic dead-end detection.
+
+**Forced move chaining.** When a color has exactly one valid next cell, it's taken automatically. No branching, no queue entry. On dense boards, large portions of the solution are forced, so fast-forwarding them in a tight loop adds up.
+
+Puzzles that take the TypeScript solver seconds finish in milliseconds.
+
+## What the Performance Comparison Shows
+
+On small grids (5×5 to 8×8), all three finish fast enough that it doesn't matter.
+
+On medium grids (9×9 to 12×12), C/WASM is clearly fastest. A* slows down. Z3 is usable but not great for interactive use.
+
+On large grids (13×13 to 15×15), only C/WASM and Z3 reliably finish. A* in TypeScript can time out. Z3 is slow but guarantees an answer.
+
+The interesting case is where A* beats Z3. On simple configurations, pruning cuts the tree to almost nothing. Z3's overhead, encoding, initializing, running clause learning, exceeds the actual search cost. Z3 gets faster relative to A* as the problem gets harder, not easier.
+
+## Running in the Browser
+
+All three run client-side. No backend. Z3 and the C solver both ship as WASM and run in Web Workers so the UI doesn't block. The interactive editor lets you draw custom puzzles and switch between solvers to compare results.
+
+Code on [GitHub](https://github.com/Kongesque/Flow-Free-Solver). Live at [flow.kongesque.com](https://flow.kongesque.com).
