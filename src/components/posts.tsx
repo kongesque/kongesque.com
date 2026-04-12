@@ -15,7 +15,6 @@ export function Posts({ posts }: PostsProps) {
             isSelected={false}
             className={index === 0 ? "pt-0" : ""}
           />
-          {index < posts.length - 1 && <hr className="border-t border-line" />}
         </div>
       ))}
     </div>

@@ -22,7 +22,6 @@ export function BlogSection() {
         {posts.map((post, index) => (
           <div key={index}>
             <PostItem post={post} />
-            {index < posts.length - 1 && <hr className="border-t border-line" />}
           </div>
         ))}
       </div>
