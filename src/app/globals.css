@@ -28,6 +28,10 @@
   /* Moss */
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   color: var(--color-primary);
   background: var(--background);
