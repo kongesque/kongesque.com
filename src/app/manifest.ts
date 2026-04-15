@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: "kongesque",
         short_name: "kongesque",
-        description: "Developer, cardist and maker of things.",
+        description: "Building things with code and curiosity.",
         start_url: "/",
         display: "minimal-ui",
         background_color: "#fff",

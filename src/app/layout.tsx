@@ -23,15 +23,15 @@ export const metadata: Metadata = {
     default: "kongesque",
     template: "%s | kongesque",
   },
-  description: "Developer, cardist and maker of things.",
-  keywords: ["Developer", "Portfolio", "Next.js", "React", "Cardist", "Maker", "Software Engineer"],
+  description: "Building things with code and curiosity.",
+  keywords: ["Builder", "Maker", "Tinkerer", "Edge AI", "Software", "Hardware", "Computer Vision", "Privacy-First", "Offline-First", "Open Source"],
   authors: [{ name: "Kongesque", url: "https://www.kongesque.com" }],
   alternates: {
     canonical: "https://www.kongesque.com",
   },
   openGraph: {
     title: "kongesque",
-    description: "Developer, cardist and maker of things.",
+    description: "Building things with code and curiosity.",
     url: "https://www.kongesque.com",
     siteName: "kongesque",
     locale: "en_US",

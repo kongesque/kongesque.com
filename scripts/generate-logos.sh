@@ -21,7 +21,7 @@ TMP_DIR="/tmp"
 
 # Site branding
 SITE_NAME="kongesque"
-SITE_DESC="Developer, cardist and maker of things"
+SITE_DESC="Building things with code and curiosity."
 BG_COLOR="#151716"
 TITLE_COLOR="#E6E4DF"
 DESC_COLOR="#8A8E8C"
@@ -143,12 +143,12 @@ magick -size 512x512 "xc:${BG_COLOR}" \
     \) -alpha off -compose CopyOpacity -composite "$OUTPUT_DIR/icon-512.png"
 
 # 6. Generate opengraph-image.png (1200×630)
-echo -e "${GREEN}🖼️  Generating opengraph-image.png (1200×630)...${NC}"
+echo -e "${GREEN}🖼️  Generating opengraph-image.png (1200×900)...${NC}"
 rsvg-convert -w 300 -h 300 "$SVG_SOURCE" > "$TMP_DIR/echo-white.png"
-magick -size 1200x630 "xc:${BG_COLOR}" \
-    "$TMP_DIR/echo-white.png" -gravity center -geometry +0-50 -composite \
-    -font "JetBrains-Mono" -pointsize 60 -fill "${TITLE_COLOR}" -gravity center -annotate +0+180 "${SITE_NAME}" \
-    -font "JetBrains-Mono" -pointsize 28 -fill "${DESC_COLOR}" -annotate +0+240 "${SITE_DESC}" \
+magick -size 1200x900 "xc:${BG_COLOR}" \
+    "$TMP_DIR/echo-white.png" -gravity center -geometry +0-80 -composite \
+    -font "$HOME/Library/Fonts/JetBrainsMonoNerdFont-Bold.ttf" -pointsize 60 -fill "${TITLE_COLOR}" -gravity center -annotate +0+150 "${SITE_NAME}" \
+    -font "$HOME/Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf" -pointsize 28 -fill "${DESC_COLOR}" -annotate +0+220 "${SITE_DESC}" \
     "$OUTPUT_DIR/opengraph-image.png"
 
 # 7. Optimize all PNG files
