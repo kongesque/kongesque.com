@@ -1,5 +1,6 @@
 import { ProjectCard } from "@/components/project-card"
 import { Metadata } from "next"
+import { Footer } from "@/components/footer"
 
 const projects = [
   {
@@ -75,6 +76,9 @@ export default function ProjectsPage() {
         {projects.map((project) => (
           <ProjectCard key={project.title} {...project} />
         ))}
+      </div>
+      <div className="mt-8">
+        <Footer />
       </div>
     </main>
   )

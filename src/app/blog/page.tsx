@@ -1,6 +1,7 @@
 import { PostsList } from "@/components/posts-list"
 import { getPosts } from "@/lib/blog"
 import { Metadata } from "next"
+import { Footer } from "@/components/footer"
 
 export default async function BlogPage() {
   const posts = getPosts().sort(
@@ -15,6 +16,9 @@ export default async function BlogPage() {
       </h1>
 
       <PostsList posts={posts} />
+      <div className="mt-8">
+        <Footer />
+      </div>
     </main>
   )
 }
