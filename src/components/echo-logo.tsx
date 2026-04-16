@@ -6,6 +6,8 @@ export function EchoLogo({ size = 32, className = "" }: { size?: number; classNa
       viewBox="0 0 256 256"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
       className={className}
       style={{ fillRule: "evenodd", clipRule: "evenodd", strokeLinejoin: "round", strokeMiterlimit: 2 }}
     >
