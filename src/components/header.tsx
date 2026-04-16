@@ -33,7 +33,7 @@ export function Header() {
                 </h1>
 
                 <p className="leading-relaxed animate-fade-in-up text-primary mb-2">
-                    is a software engineer building offline-first edge AI and open-source computer vision systems.
+                    builds things, mostly computer vision and offline edge AI. Likes problems harder than they look and terminals darker than they need to be.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 text-secondary text-sm">
