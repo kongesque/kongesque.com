@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import dynamic from 'next/dynamic';
-import { MapPin } from 'lucide-react';
+import { MapPin, GraduationCap } from 'lucide-react';
 
 const SnakeGame = dynamic(() => import('@/components/snake'), { ssr: false });
 
@@ -36,9 +36,25 @@ export function Header() {
                     is a software engineer building offline-first edge AI and open-source computer vision systems.
                 </p>
 
-                <div className="flex items-center gap-2 text-secondary text-sm">
-                    <MapPin className="w-4 h-4" />
-                    Hualien, Taiwan
+                <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 text-secondary text-sm">
+                    <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Hualien, Taiwan
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4" />
+                        <span>
+                            CSIE @{" "}
+                            <a
+                                href="https://www.ndhu.edu.tw/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-accent transition-colors duration-300"
+                            >
+                                NDHU
+                            </a>
+                        </span>
+                    </div>
                 </div>
             </div>
         </header>
