@@ -82,13 +82,13 @@ export default function HomePage() {
       />
       <Header />
 
+      <BlogSection />
       <SectionList
         title="Projects"
         items={projectItems}
         viewAllHref="/projects"
         viewAllText="More projects"
       />
-      <BlogSection />
       <LinksSection />
       <Footer />
     </>

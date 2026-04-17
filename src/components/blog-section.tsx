@@ -10,7 +10,7 @@ export function BlogSection() {
       (a, b) =>
         new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime()
     )
-    .slice(0, 4)
+    .slice(0, 3)
 
   return (
     <section className="my-20 animate-fade-in-up">
