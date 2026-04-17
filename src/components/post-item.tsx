@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { type MDXFileData } from "@/lib/blog";
 import Link from "next/link";
-import SnakeCoverLoader from "@/components/snake-cover-loader";
 
 type PostItemProps = {
   post: MDXFileData;
@@ -32,17 +31,13 @@ export function PostItem({ post, isSelected, className }: PostItemProps) {
         </time>
       </div>
       <div className="w-full h-48 sm:w-48 sm:h-32 relative rounded-md group-hover:rounded-lg transition-all duration-300 overflow-hidden shrink-0">
-        {post.slug === "perfect-snake-ai" ? (
-          <SnakeCoverLoader />
-        ) : (
-          <Image
-            alt=""
-            fill
-            src={`/cover/${post.slug}.jpg`}
-            sizes="(max-width: 640px) 100vw, 192px"
-            className="object-cover"
-          />
-        )}
+        <Image
+          alt=""
+          fill
+          src={`/cover/${post.slug}.jpg`}
+          sizes="(max-width: 640px) 100vw, 192px"
+          className="object-cover"
+        />
       </div>
     </Link>
   );
