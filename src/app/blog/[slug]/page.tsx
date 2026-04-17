@@ -189,7 +189,7 @@ export default async function Post({ params }: PageProps) {
 
       {slug === "perfect-snake-ai" ? (
         <div className="w-full h-64 md:h-96 rounded-lg overflow-hidden">
-          <SnakeCoverLoader hint bgOverride="#0E1110" />
+          <SnakeCoverLoader />
         </div>
       ) : (
         <Image
