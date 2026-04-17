@@ -18,13 +18,9 @@ export function BlogSection() {
         Blog
       </h2>
 
-      <div>
-        {posts.map((post, index) => (
-          <div key={index}>
-            <PostItem post={post} />
-          </div>
-        ))}
-      </div>
+      {posts.map((post) => (
+        <PostItem key={post.slug} post={post} />
+      ))}
 
       <Link
         href="/blog"
