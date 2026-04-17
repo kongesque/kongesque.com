@@ -44,7 +44,15 @@ export function Header() {
                     <div className="flex items-center gap-2">
                         <GraduationCap className="w-4 h-4" />
                         <span>
-                            CSIE @{" "}
+                            <a
+                                href="https://www.csie.ndhu.edu.tw/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-accent transition-colors duration-300"
+                            >
+                                CSIE
+                            </a>
+                            {" @ "}
                             <a
                                 href="https://www.ndhu.edu.tw/"
                                 target="_blank"
