@@ -21,6 +21,7 @@ const cycleCache = new Map<string, any[]>();
 export default function SnakeCover() {
     const canvasRef = useRef<HTMLDivElement>(null);
     const [isSpeedUp, setIsSpeedUp] = useState(false);
+    const [ready, setReady] = useState(false);
 
     useEffect(() => {
         const { primary, accent } = getColors();
@@ -99,6 +100,7 @@ export default function SnakeCover() {
 
                     s.resetOnHamiltonian(hc);
                     p.frameRate(30);
+                    setReady(true);
                 };
 
                 let speedUp = false;
@@ -152,8 +154,15 @@ export default function SnakeCover() {
     }, []);
 
     return (
-        <div className={`relative w-full h-full transition-all duration-300 ${isSpeedUp ? 'ring-1 ring-accent rounded-lg' : ''}`}>
-            <div ref={canvasRef} className="w-full h-full" style={{ userSelect: 'none' }} />
+        <div className={`relative w-full h-full ${isSpeedUp ? 'ring-1 ring-accent rounded-lg' : ''}`}>
+            <div ref={canvasRef} className={`w-full h-full ${ready ? 'opacity-100' : 'opacity-0'}`} style={{ userSelect: 'none' }} />
+            {!ready && (
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ backgroundColor: '#0E1110' }}
+                    aria-hidden="true"
+                />
+            )}
         </div>
     );
 }

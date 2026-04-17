@@ -67,12 +67,12 @@ const projects = [
 
 export default function ProjectsPage() {
   return (
-    <main className="animate-fade-in-up">
+    <section className="animate-fade-in-up">
       <h1 className="text-2xl sm:text-3xl font-bold mb-8 text-primary">
         Projects
       </h1>
 
-      <div className="space-y-6">
+      <div className="space-y-6 pb-5">
         {projects.map((project) => (
           <ProjectCard key={project.title} {...project} />
         ))}
@@ -80,7 +80,7 @@ export default function ProjectsPage() {
       <div className="mt-8">
         <Footer />
       </div>
-    </main>
+    </section>
   )
 }
 
