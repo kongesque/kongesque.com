@@ -1,0 +1,89 @@
+---
+title: "The Snake on My Homepage Never Dies"
+description: "A Hamiltonian cycle guarantees the snake never traps itself. A* shortcuts through that cycle make it watchable. Together they solve a game that's surprisingly hard to play perfectly."
+date: "2024-12-31"
+---
+
+In [my first post](/blog/hello-world) I mentioned in one sentence that I'd spent a week building a **[perfect snake AI](https://github.com/kongesque/perfect-snakeAI)** for the homepage. I never explained how it worked. This is that. I know nobody read it and asked for it. I'm explaining anyway.
+
+The snake on the front of this site plays itself. It never crashes, never gets stuck, and eventually fills the entire board. Click on it once and it runs at 10x. I wrote it because it looks cool, and to practice my skills, I guess.
+
+## Why Greedy Doesn't Work
+
+I tried the obvious thing first. Of course I did. Run [A*](https://en.wikipedia.org/wiki/A*_search_algorithm) from the head to the apple, take the next move, eat the apple, repeat. It works on a small board with a short snake. Then the snake grows.
+
+The trouble is that the apple can sit in places where the *shortest* path traps you. You eat it, your tail wraps around behind you, and the next apple is in a region you can't reach without crossing yourself. You don't notice this until you've already moved. By then the trap is set.
+
+You can add lookahead. Check if a path leaves you with a route to your own tail after the apple is eaten. That helps. It also gets expensive fast, because you're simulating future board states inside every search step. And it doesn't fully fix the problem. The snake can still strand itself in regions that are reachable on paper but impossible to escape in practice.
+
+I spent two days trying to make the lookahead version work before I accepted it wasn't going to. At some point it's easier to stop searching for the apple at all, and guarantee safety in advance instead.
+
+## The Hamiltonian Cycle
+
+A [Hamiltonian cycle](https://en.wikipedia.org/wiki/Hamiltonian_path) is a path that visits every cell exactly once and returns to the start. If a snake just follows that forever, it can't crash. It stays one cell behind itself. The cell ahead is always free.
+
+That's the safe version. It's also painfully slow. On a 20×20 board, eating a single apple can take a full lap of the cycle (400 moves), regardless of where the apple actually is. The interesting part is what you do on top of that.
+
+## A* Through the Cycle
+
+Once you have a Hamiltonian cycle. Every cell gets an index. Its position along the cycle. The head, the tail, and the apple all have one. "Forward" along the cycle just means incrementing that index modulo the cycle length.
+
+From the current head, run A* to the apple, but only allow moves that keep the new position "ahead" of the tail in the cycle ordering. As long as that holds, the snake can leave the cycle entirely, cut across the board, and rejoin without putting itself at risk.
+
+The key question I kept getting wrong: when is a move actually safe? Not "can the snake reach that cell" but "will it still be alive after it does". My first attempt measured straight-line distance from the candidate cell to the tail. That seemed right. It wasn't. The snake can be geometrically close to its tail but cycle-far away from it, which is what actually matters. The way I eventually settled on thinking about it, distance isn't measured across the grid, it's measured forward around the cycle:
+
+$$d(a, b) = (b - a + N) \bmod N$$
+
+where $N$ is the cycle length. The snake's body is an arc of cycle positions, from tail forward to head. A move is safe if the candidate cell sits inside that arc. Which means:
+
+$$d(\text{head}, \text{candidate}) < d(\text{head}, \text{tail}) - B$$
+
+where $B$ is a safety buffer. If the candidate lands at or past the buffered tail, the snake would run into itself and crash.
+
+I drew this out on paper to convince myself it was right. More than once. The cycle indexing is easy to get wrong, and the wrong version still looks plausible.
+
+The buffer has two parts: a fixed margin, plus the queued growth from apples already eaten but not yet added to the tail. Without the second part, the snake can plan a shortcut, eat an apple along the way, and have its own new tail intersect the planned path partway through.
+
+A* is guided by [Manhattan distance](https://en.wikipedia.org/wiki/Taxicab_geometry) to the apple. On a 4 connected grid where every move costs 1, Manhattan distance never overestimates the true cost, so A* with the cycle constraint returns the shortest legal shortcut when one exists, and falls back to following the cycle when none does.
+
+## Late Game
+
+As the snake fills the board, the safe margin shrinks. The number of legal shortcuts collapses. It's not a mode I switch into. It just happens as the search runs out of room.
+
+What it actually looks like: the snake stops cutting across open space and starts hugging the cycle more and more closely. You can see it slow down, not in speed but in intent. It used to dart toward the apple; now it curves around the long way, following a path that barely differs from the cycle itself. By the last twenty or thirty apples it's basically just the pure Hamiltonian, shuffling the last cells into place. I find that part weirdly satisfying to watch.
+
+## Generating the Cycle
+
+The cycle has to come from somewhere. You can hand design one for a fixed grid, but I wanted any rectangular size to work, because the homepage canvas resizes with the window. I didn't invent this part. There's a known construction, and once I understood why it works it felt obvious:
+
+**1. Halve the dimensions.** A 20×20 board becomes a 10×10 graph of "super-cells," where each super-cell maps to a 2×2 block in the full grid.
+
+**2. Build a random [spanning tree](https://en.wikipedia.org/wiki/Spanning_tree) on the half grid.** Pick a random super-cell, then repeatedly pick an already visited super-cell, walk to one of its unvisited neighbors, and add that edge. Stop when every super-cell is visited.
+
+**3. Expand each tree edge into a corridor.** Every edge in the spanning tree becomes a 2-wide corridor connecting adjacent 2×2 blocks in the full grid. The result is a thickened tree: every super-cell is a 2×2 block, every connection is 2 cells wide. This step is where I introduced two different off-by-one bugs on two separate days.
+
+**4. Walk the boundary.** After expansion, every full grid cell has exactly two cycle-adjacent neighbors. Start anywhere, pick one direction, and at each step take the neighbor you didn't just come from. The loop closes when you return to the start. Simple in principle. Took me an embarrassingly long time to implement without it silently visiting a cell twice.
+
+What convinced me this always produces a valid cycle: a spanning tree has no loops, so the thickened version is simply connected. A simply connected region has a single boundary curve. That boundary is the Hamiltonian cycle.
+
+The grid needs even dimensions for the doubling to work. The homepage rounds the block count down to the nearest even number for that reason.
+
+## Why This Was a Week
+
+The algorithm above takes a paragraph to describe. The bugs took the rest of the time.
+
+The tail-overtake check has off by ones in it that don't show up for a while. The snake will run cleanly for a hundred apples and then crash because the cycle distance was computed against the *current* tail position instead of where the tail will actually be once the planned shortcut finishes. You have to project the tail forward before checking, not after.
+
+The other class of bug is in the cycle generation. If the spanning tree expansion is slightly off, you get a "cycle" that visits every cell but isn't actually closed, and the snake walks off the end of it. That's not a runtime error. It just looks like the snake suddenly forgets what it was doing.
+
+I wrote no tests for any of this. I just watched it run for a long time and fixed whatever broke. That was the week.
+
+## On the Homepage
+
+The whole thing runs on [p5.js](https://p5js.org/) inside a canvas. No backend, no controls beyond click to speed up, no state to persist. It picks a starting cell, generates a cycle, plays. When it wins, it resets and starts again.
+
+It reminds me of [Sisyphus](https://en.wikipedia.org/wiki/The_Myth_of_Sisyphus). Every win is erased the moment it arrives, and the snake starts again without pause. Camus said the struggle itself is enough: that Sisyphus, walking back down to his rock, is already happy. And maybe it's a little like me. I wake up, do what I can, the day resets, I go again.
+
+It's a decoration. I know. Nobody asked for it. But every time I open my own site I watch it for a few seconds before scrolling, and I think that's a good enough reason to leave it there.
+
+Code for the perfect snake AI is on [GitHub](https://github.com/kongesque/perfect-snakeAI).
