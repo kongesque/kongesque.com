@@ -5,6 +5,7 @@ import CopyLinkButton from '@/components/share-button';
 import { Footer } from '@/components/footer';
 import Image from "next/image";
 import type { Metadata } from "next";
+import SnakeCoverLoader from "@/components/snake-cover-loader";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -186,14 +187,20 @@ export default async function Post({ params }: PageProps) {
         }}
       />
 
-      <Image
-        src={`/cover/${slug}.jpg`}
-        alt={post.metadata.title}
-        width={1200}
-        height={630}
-        priority
-        className="w-full h-64 md:h-96 object-cover rounded-lg"
-      />
+      {slug === "perfect-snake-ai" ? (
+        <div className="w-full h-64 md:h-96 rounded-lg overflow-hidden">
+          <SnakeCoverLoader />
+        </div>
+      ) : (
+        <Image
+          src={`/cover/${slug}.jpg`}
+          alt={post.metadata.title}
+          width={1200}
+          height={630}
+          priority
+          className="w-full h-64 md:h-96 object-cover rounded-lg"
+        />
+      )}
 
       <div className="flex flex-row my-6 gap-4 items-start sm:items-center justify-between px-2">
         <div className="flex flex-row gap-10 sm:gap-20">

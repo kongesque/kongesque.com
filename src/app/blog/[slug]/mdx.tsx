@@ -5,6 +5,7 @@ import { codeToHtml } from "shiki"
 import remarkMath from "remark-math"
 import rehypeKatex from "rehype-katex"
 import Image from "next/image"
+import SnakeCoverLoader from "@/components/snake-cover-loader"
 
 function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
   let headers = data.headers.map((header, index) => (
@@ -145,6 +146,7 @@ const components = {
   pre: Pre,
   Table,
   Image: NextImage,
+  SnakeCover: SnakeCoverLoader,
 }
 
 export function MDX(props: any) {
