@@ -18,12 +18,14 @@ const getColors = () => {
 
 const cycleCache = new Map<string, any[]>();
 
-export default function SnakeCover() {
+export default function SnakeCover({ hint = false, bgOverride }: { hint?: boolean; bgOverride?: string }) {
     const canvasRef = useRef<HTMLDivElement>(null);
     const [isSpeedUp, setIsSpeedUp] = useState(false);
 
     useEffect(() => {
-        const { bg, primary, accent } = getColors();
+        const colors = getColors();
+        const bg = bgOverride ?? colors.bg;
+        const { primary, accent } = colors;
         let p5Instance: p5 | undefined;
 
         const initGame = async () => {
@@ -148,17 +150,16 @@ export default function SnakeCover() {
 
         initGame();
         return () => { p5Instance?.remove(); };
-    }, []);
+    }, [bgOverride]);
 
     return (
         <div className={`relative w-full h-full transition-all duration-300 ${isSpeedUp ? 'ring-1 ring-accent rounded-lg' : ''}`}>
             <div ref={canvasRef} className="w-full h-full" style={{ userSelect: 'none' }} />
-            <div className="absolute top-2 right-2 pointer-events-none select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse block" />
-            </div>
-            <div className="absolute bottom-2 right-2 pointer-events-none select-none">
-                <span className="text-xs font-mono text-secondary opacity-40">click to 10×</span>
-            </div>
+            {hint && (
+                <div className="absolute bottom-2 right-2 pointer-events-none select-none">
+                    <span className="text-xs font-mono text-secondary opacity-40">click to 10×</span>
+                </div>
+            )}
         </div>
     );
 }
