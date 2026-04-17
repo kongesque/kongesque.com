@@ -114,17 +114,32 @@ export default function SnakeCover() {
                     el.style.cursor = 'pointer';
                 }
 
-                p.windowResized = () => {
+                const handleResize = () => {
                     const el = canvasRef.current;
-                    if (!el || window.innerWidth === previousWidth) return;
+                    if (!el || typeof window === 'undefined') return;
+                    if (window.innerWidth === previousWidth) return;
                     previousWidth = window.innerWidth;
+
+                    const oldBlocksX = blocksX;
+                    const oldBlocksY = blocksY;
+
                     p.resizeCanvas(el.offsetWidth, el.offsetHeight);
                     setBlocks(p.width, p.height);
+
                     blockSize = Math.min(p.width / blocksX, p.height / blocksY);
                     outlineLength = blockSize / 15;
                     xOffset = (p.width - blockSize * blocksX) / 2;
                     yOffset = (p.height - blockSize * blocksY) / 2;
-                    p.setup();
+
+                    if (blocksX !== oldBlocksX || blocksY !== oldBlocksY) {
+                        p.setup();
+                    }
+                };
+
+                let resizeDelay: ReturnType<typeof setTimeout>;
+                p.windowResized = () => {
+                    clearTimeout(resizeDelay);
+                    resizeDelay = setTimeout(handleResize, 500);
                 };
 
                 p.draw = () => {
