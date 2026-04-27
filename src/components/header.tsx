@@ -29,17 +29,17 @@ export function Header() {
 
             <div>
                 <h1 className="text-2xl sm:text-3xl font-bold mb-4 animate-fade-in text-primary">
-                    Kong
+                    Kongphob (Kong) Mangkaung
                 </h1>
 
                 <p className="leading-relaxed animate-fade-in-up text-primary mb-2">
-                    builds things, mostly computer vision and offline edge AI. Likes problems harder than they look and terminals darker than they need to be.
+                    builds things, mostly computer vision and offline edge AI. Likes problems harder than they look and terminals darker than they need to be. 𖥔
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 text-secondary text-sm">
                     <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Hualien, Taiwan
+                        Taipei, Taiwan
                     </div>
                     <div className="flex items-center gap-2">
                         <GraduationCap className="w-4 h-4" />
