@@ -1,63 +1,60 @@
 ---
-title: "Locus Vision: How I Built a Real-Time Edge AI Video Analytics Engine on a Raspberry Pi"
+title: "Locus Vision: object detection and tracking on a Raspberry Pi 5"
 description: "People counting, vehicle tracking, and heatmaps on a Raspberry Pi. Runs locally. No cloud."
 date: "2026-03-01"
 ---
 
-The default architecture for video analytics is always the same: capture the RTSP stream, ship it to a cloud server with a high-end GPU, run inference, send the data back. It works. But it means your live camera feed is leaving the building, and the latency, bandwidth cost, and privacy tradeoffs follow from that automatically.
+Locus Vision runs object detection and tracking entirely on a Raspberry Pi 5. No cloud, no video leaving the device. This post walks the three decisions that actually mattered: ONNX Runtime over PyTorch on ARM, INT8 PTQ with QDQ calibration on YOLO11n (10MB -> 3MB, ~3x ONNX FPS over FP32), and adding a Hailo-8L via the AI HAT+ with YOLOv6n at 355 FPS / 7ms hardware latency. Each section has the methodology, the numbers, and what didn't work.
 
-I wanted to build a privacy-preserving alternative. Something that could do people counting, vehicle detection, and spatial heatmap generation completely on-premise without cloud dependency, video in transit, or ongoing infrastructure costs. And I wanted it to run on a Raspberry Pi 5, which costs $80.
+Code is on **[GitHub](https://github.com/kongesque/locus-vision)**.
 
-That project became **[Locus Vision](https://github.com/kongesque/locus-vision)**. This is what I built, what broke along the way, and the decisions that shaped the final design.
+## ONNX Runtime over PyTorch
 
-## Why PyTorch Is the Wrong Tool for Edge Inference
+My first prototype was Python: OpenCV pulling frames, YOLO11 through PyTorch, ByteTrack on the output. Fine on a Mac. On a Raspberry Pi 5 it thermal-throttled inside a minute and sat at ~3 FPS.
 
-My initial prototype was a Python script pulling frames via OpenCV, running YOLO11 through PyTorch, and tracking the results. On a Mac, fine. On a Raspberry Pi 5, the CPU immediately thermal-throttled, memory spiked, and I was stuck at 3 FPS.
+The obvious knobs were resolution and frame-skip. I dropped input from 640 to 416 and skipped every other frame. That bought maybe 6 FPS. Better, but the wrong fix. The bottleneck wasn't pixels per second.
 
-The first fix I tried was obvious. Lower the input resolution, skip frames. That got me to maybe 6 FPS. Not usable, but at least the direction felt right. Except it wasn't. The resolution wasn't the problem. PyTorch was.
+PyTorch is a training framework. At inference time on ARM, it pulls in a deep dependency tree and runs unfused ops through dispatch paths that weren't built for Cortex-A76. I ripped it out and moved to ONNX Runtime. Graph-level operator fusion plus ARM-tuned kernels selected at session creation. The jump was bigger than anything resolution tuning ever gave me.
 
-PyTorch is a research and training framework. On ARM, it hauls an enormous dependency tree and does nothing useful with it at inference time. I dropped it entirely and moved to **ONNX Runtime**, which let the runtime optimize graph execution specifically for the ARM Cortex-A76 cores. Better, but still not smooth enough for real-time multi-camera object tracking.
+## INT8 PTQ on YOLO11n
 
-If you're deploying computer vision at the edge, the framework you train with and the framework you deploy with should probably be different tools. ONNX is the bridge.
+Even on ONNX, throughput plateaued. I kept hunting FPS until I realized the limiting factor on the Pi isn't core clock, it's memory bandwidth. Moving FP32 weights from DRAM into the L2 every frame is what stalls the pipeline.
 
-## The Real Bottleneck: Memory Bandwidth, Not Compute
+The fix is static INT8 post-training quantization with QDQ (Quantize / DeQuantize) nodes inserted around quantizable layers. I calibrated against a representative subset of deployment footage so the per-channel scales reflect the real input distribution, not COCO statistics.
 
-After switching to ONNX, I kept chasing FPS and eventually realized I was looking at the wrong constraint. On a Raspberry Pi, the limiting factor isn't the CPU clock speed. It's memory bandwidth. Moving FP32 (32-bit floating point) weights from RAM to CPU registers every single frame simply takes too long, regardless of how fast the cores are.
+The tradeoff isn't clean. INT8 cuts model size and bandwidth by roughly 70%, but accuracy degrades unevenly across classes. People and vehicles held up. Smaller and partially-occluded classes did worse. There's no shortcut for this; you have to benchmark on your actual data.
 
-The fix was static INT8 quantization using QDQ (Quantize and DeQuantize) nodes. You map the FP32 weights into 8-bit integer space and dramatically cut the memory pressure. But it's not a clean tradeoff. INT8 compression gets you around 70% size reduction, but accuracy degrades unevenly across classes. Some object types, like people and cars, hold up well. Others don't. You won't know which until you benchmark against your actual deployment conditions.
+YOLO11n on ONNX-CPU went from 10MB to 3MB and stabilized at **14 FPS, 69ms median per-frame latency** (single camera, single stream, Pi 5 CPU only, no NPU).
 
-A YOLO11n model dropped from over 10MB to 3MB. The Pi 5 stabilized at **~14 FPS** (69ms median latency) per model.
+14 FPS sounds low. With ByteTrack on top, it's enough for footfall analytics: counting people across a line, dwell time per zone, vehicle detection in a parking area. ByteTrack carries IDs across brief occlusions, so the smoothness people perceive comes from the tracker, not the detector frame rate.
 
-14 FPS sounds low. But paired with **ByteTrack**, a multi-object tracker that maintains IDs across brief occlusions, it's more than enough for accurate footfall analytics: people counting across a line, vehicle detection in a parking zone, dwell time per area. Most occupancy detection use cases don't need 60 FPS. They need consistent, accurate tracking, and 14 FPS delivers that.
+## SQLite plus DuckDB
 
-This also forced a discipline that paid off later. Every layer of the pipeline had to stay lean, because there was no headroom for waste.
+The vision pipeline ran. I assumed the hard part was over. It wasn't.
 
-## Why SQLite Wasn't Enough: Adding DuckDB for Analytics
+A single camera doing people counting and vehicle tracking generates thousands of coordinate rows per hour. Writes were fine: `aiosqlite` in WAL mode kept up. Reads were not. The frontend (Svelte and SvelteKit) needed to render hourly heatmaps and aggregate charts, and SQLite was taking multiple seconds to roll up a few hundred thousand coordinate rows. On an edge dashboard, that feels broken even when nothing is broken.
 
-With the computer vision pipeline running, I assumed the hard part was done.
+The fix was splitting the workloads:
 
-Every tracked object generates coordinate data. A single camera running people counting and vehicle tracking produces thousands of data points per hour. Writing to SQLite with async `aiosqlite` in WAL mode handled the writes fine. The problem was reads.
+- **SQLite** for operational state (camera configs, auth, stream settings).
+- **DuckDB** for telemetry and tracking events.
 
-The frontend, built in **Svelte** and **SvelteKit**, needed to render spatial heatmaps and hourly aggregate charts. Querying hundreds of thousands of coordinate rows in SQLite to generate a heatmap was taking multiple seconds. On an edge device, that blocking query makes the whole dashboard feel broken, even if the vision pipeline is running perfectly.
+DuckDB is columnar and vectorized. The same hourly-by-zone aggregation that took seconds in SQLite runs in under 10ms on the Pi. SQLite is the right tool for transactional writes. It's the wrong tool for aggregating millions of coordinate rows into spatial heatmaps.
 
-The solution was separating the workloads:
-- **SQLite** for operational state: camera configs, user auth, stream settings
-- **DuckDB** for all telemetry and tracking events
+## Hailo-8L: YOLOv6n, not YOLO11n
 
-DuckDB is a columnar analytical database. Spatial aggregations that took seconds in SQLite, such as calculating the hourly average foot traffic grouped by zone for the last 7 days, now run in under 10ms on the Pi. The database choice matters more than most people expect when you're doing edge AI analytics on constrained hardware. SQLite is the right tool for transactional writes. It is the wrong tool for aggregating millions of coordinate rows into heatmaps.
+Raspberry Pi's AI HAT+ adds a Hailo-8L NPU over PCIe, rated at 13 TOPS.
 
-## Adding an NPU: From 14 FPS to 355 FPS
+A caveat the marketing rarely states: not every model has a compiled HEF artifact for Hailo-8L. At the time of writing, YOLO11 does not, so I'm not running the same model on both backends. The CPU path runs INT8 YOLO11n via ONNX. The NPU path runs YOLOv6n via HailoRT. Different model, different binary, different graph.
 
-Building on raw CPU forced good habits. But hardware is moving fast.
+What made the swap cheap was that the inference layer was abstracted around execution providers from the start. A model discovery step probes the host: if it sees the Hailo silicon, it dispatches to HailoRT, otherwise it falls back to ONNX-CPU. No call sites change.
 
-Raspberry Pi's AI HAT+ adds a PCIe-attached Hailo-8L NPU capable of 13 TOPS. Because I'd abstracted the ML pipeline around execution providers from the start, integration was straightforward. A model discovery engine detects the host hardware, and when it sees the Hailo silicon, it hands inference off to the HailoRT driver instead.
+YOLOv6n on Hailo-8L: **355 FPS, 7ms hardware latency** per frame (single stream, hardware-only timing, model load and host-side preprocessing excluded).
 
-The same device that was doing 14 FPS on CPU jumped to **355 FPS** on the NPU, dropping latency from 69ms to 7ms. That's enough headroom for dense multi-camera setups, such as several streams running parallel object detection on a single board. I genuinely didn't expect that margin. 14 FPS was already sufficient for the use case; the NPU turned out to be headroom, not a fix for something broken.
+I didn't expect that headroom. 14 FPS already covered the use case. The NPU is what makes dense multi-camera setups possible on one board, not what unblocked the project.
 
-The practical takeaway: if the inference engine is properly abstracted, swapping the execution backend is a config change, not a rewrite.
+## What it is
 
-## What I Ended Up With
+An $80 single-board computer running real-time multi-object tracking, spatial heatmaps, footfall analytics, and vehicle detection. On-prem, offline. No video leaves the device.
 
-The result is **Locus Vision**: an $80 single-board computer running real-time multi-object tracking, spatial heatmaps, footfall analytics, and vehicle detection completely on-premise and offline. No cloud instance, no video leaving the network, no monthly bill.
-
-The full platform is open-sourced. Code is on [GitHub](https://github.com/kongesque/locus-vision), and there's a Docker setup if you want to run it without touching the Python environment.
+Code is on [GitHub](https://github.com/kongesque/locus-vision), and there's a Docker setup if you want to run it without touching the Python environment.
