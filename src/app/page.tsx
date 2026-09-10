@@ -14,20 +14,20 @@ const projectItems = [
     href: "https://github.com/Kongesque/locus-vision",
   },
   {
-    title: "lemon & herbs",
+    title: "line-cli",
     role: "creator",
-    period: "nov 2025",
+    period: "sep 2026 - present",
     description:
-      "A bilingual brand showcase for a nursery in Hua Hin. Features a minimalist, nature-centric UI with seamless localization (TH/EN) to highlight artisanal lemon trees and herbs.",
-    href: "https://www.lemonnherbs.com/",
+      "An unofficial command-line client for personal LINE accounts. Read and send messages, share files, react, watch live events, and automate workflows with JSON, with Letter Sealing end-to-end encryption.",
+    href: "https://github.com/kongesque/line-cli",
   },
   {
-    title: "custom-region-object-counter-YOLOV8",
+    title: "flow free solver",
     role: "creator",
-    period: "mar 2024 - may 2024",
+    period: "nov 2024",
     description:
-      "A web app for detecting and counting objects in videos using YOLOv8 for detection and ByteTrack for tracking, with customizable regions of interest (ROIs) function.",
-    href: "https://github.com/Kongesque/custom-region-object-counter-YOLOV8",
+      "A web-based solver for the Flow Free puzzle game. Powered by Heuristic BFS, SAT (Z3) & A* search.",
+    href: "https://flow.kongesque.com/",
   },
 ]
 

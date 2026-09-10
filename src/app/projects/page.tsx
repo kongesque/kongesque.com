@@ -26,6 +26,22 @@ const projects = [
     href: "https://github.com/Kongesque/locus-vision",
   },
   {
+    title: "line-cli",
+    description:
+      "An unofficial command-line client for personal LINE accounts. Read and send messages, share files, react, watch live events, and automate workflows with JSON, with Letter Sealing end-to-end encryption.",
+    role: "creator",
+    period: "sep 2026 - present",
+    technologies: [
+      "go",
+      "cli",
+      "letter sealing",
+      "e2ee",
+      "json",
+      "keychain",
+    ],
+    href: "https://github.com/kongesque/line-cli",
+  },
+  {
     title: "lemon & herbs",
     description:
       "A bilingual brand showcase for a nursery in Hua Hin, Thailand. Features a minimalist, nature-centric UI with seamless localization (TH/EN) to highlight artisanal lemon trees and herbs.",

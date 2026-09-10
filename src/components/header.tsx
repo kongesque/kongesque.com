@@ -29,7 +29,7 @@ export function Header() {
 
             <div>
                 <h1 className="text-2xl sm:text-3xl font-bold mb-4 animate-fade-in text-primary">
-                    Kongphob (Kong) 
+                    Kong
                 </h1>
 
                 <p className="leading-relaxed animate-fade-in-up text-primary mb-2">
@@ -50,7 +50,7 @@ export function Header() {
                                 rel="noopener noreferrer"
                                 className="hover:text-accent transition-colors duration-300"
                             >
-                                CSIE
+                                CS grad
                             </a>
                             {" @ "}
                             <a
