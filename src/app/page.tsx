@@ -8,7 +8,7 @@ const projectItems = [
   {
     title: "locus-vision",
     role: "creator",
-    period: "may 2026 - present",
+    period: "dec 2025 - present",
     description:
       "An open-source vision analytics engine powered by YOLO11, optimized for edge devices. Features real-time object detection, tracking, line crossing, and spatial zone counting. 100% offline and fully self-hosted.",
     href: "https://github.com/Kongesque/locus-vision",

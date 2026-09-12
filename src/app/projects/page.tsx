@@ -8,7 +8,7 @@ const projects = [
     description:
       "An open-source vision analytics engine powered by YOLO11, optimized for edge devices. Features real-time object detection, tracking, line crossing, and spatial zone counting. 100% offline and fully self-hosted.",
     role: "creator",
-    period: "may 2026 - present",
+    period: "dec 2025 - present",
     technologies: [
       "sveltekit",
       "typescript",
